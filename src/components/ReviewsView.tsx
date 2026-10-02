@@ -8,13 +8,16 @@ import {
   Play,
   ArrowRight,
   BookOpen,
-  Sparkles
+  Sparkles,
+  Bell,
+  Settings
 } from 'lucide-react';
 import { useStudy } from '../context/StudyContext';
 import { SpacedReview } from '../types';
 
 export const ReviewsView: React.FC = () => {
-  const { reviews, navigateTo } = useStudy();
+  const { reviews, navigateTo, triggerNotification, notificationPreferences } = useStudy();
+  const [remindedId, setRemindedId] = useState<string | null>(null);
   const todayStr = new Date().toISOString().split('T')[0];
 
   // Simulated default review queue if empty
@@ -103,11 +106,42 @@ export const ReviewsView: React.FC = () => {
 
       {/* Today's Reviews */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <h3 className="text-base font-bold text-white flex items-center gap-2">
             <Clock className="w-4 h-4 text-blue-400" />
             <span>Revisões Programadas para Hoje ({todayReviews.length})</span>
           </h3>
+
+          <div className="flex items-center gap-2 text-xs">
+            {todayReviews.length > 0 && (
+              <button
+                onClick={() => {
+                  triggerNotification({
+                    category: 'spaced_review',
+                    title: `Lembrete: ${todayReviews.length} Revisões Prontas`,
+                    message: `Você tem ${todayReviews.length} revisão(ões) agendada(s) hoje. Inicie por: "${todayReviews[0]?.title}".`,
+                    actionLabel: 'Revisar Agora',
+                    actionView: 'reviews',
+                    priority: 'high'
+                  });
+                }}
+                className="px-3 py-1.5 rounded-lg bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 border border-purple-500/30 flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Disparar notificação e lembrete das revisões de hoje"
+              >
+                <Bell className="w-3.5 h-3.5" />
+                <span>Lembrar Revisões</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => navigateTo('settings')}
+              className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Ajustar preferências de notificação"
+            >
+              <Settings className="w-3.5 h-3.5 text-blue-400" />
+              <span className="hidden sm:inline">Preferências</span>
+            </button>
+          </div>
         </div>
 
         {todayReviews.length > 0 ? (
@@ -134,13 +168,33 @@ export const ReviewsView: React.FC = () => {
                 <div className="flex items-center justify-between pt-2 border-t border-slate-800">
                   <button
                     onClick={() => rev.courseId && rev.lessonId && navigateTo('lesson-player', rev.courseId, rev.lessonId)}
-                    className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                    className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <Play className="w-3 h-3 fill-white" />
                     <span>Revisar Aula</span>
                   </button>
 
-                  <span className="text-[11px] text-slate-500">Agendada para hoje</span>
+                  <button
+                    onClick={() => {
+                      triggerNotification({
+                        category: 'spaced_review',
+                        title: `Lembrete: ${rev.title}`,
+                        message: `Revisão de ${rev.subject} (Etapa ${rev.intervalStage}). Separe 15 minutos para rever os pontos principais!`,
+                        actionLabel: 'Revisar Agora',
+                        actionView: 'reviews',
+                        actionCourseId: rev.courseId,
+                        actionLessonId: rev.lessonId,
+                        priority: 'high'
+                      });
+                      setRemindedId(rev.id);
+                      setTimeout(() => setRemindedId(null), 3000);
+                    }}
+                    className="text-xs text-slate-400 hover:text-purple-300 flex items-center gap-1 transition-colors cursor-pointer px-2 py-1 rounded hover:bg-slate-800"
+                    title="Enviar lembrete para esta matéria"
+                  >
+                    <Bell className="w-3.5 h-3.5 text-purple-400" />
+                    <span>{remindedId === rev.id ? 'Lembrete enviado!' : 'Lembrar-me'}</span>
+                  </button>
                 </div>
               </div>
             ))}

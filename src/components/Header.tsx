@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Menu,
   Search,
@@ -10,26 +10,84 @@ import {
   User as UserIcon,
   ChevronDown,
   Sparkles,
-  Award
+  Award,
+  RotateCcw,
+  Layers,
+  Settings,
+  CheckCheck,
+  Trash2,
+  ArrowRight,
+  ShieldAlert,
+  Volume2
 } from 'lucide-react';
 import { useStudy } from '../context/StudyContext';
+import { formatRelativeTime, NOTIFICATION_CATEGORY_INFO, getPushPermissionState } from '../lib/notifications';
+import { NotificationCategory } from '../types';
 
 interface HeaderProps {
   setMobileOpen: (open: boolean) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ setMobileOpen }) => {
-  const { profile, user, signIn, setSearchOpen, routineTasks, reviews, navigateTo, setOnboardingOpen } = useStudy();
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const {
+    profile,
+    user,
+    signIn,
+    setSearchOpen,
+    routineTasks,
+    reviews,
+    navigateTo,
+    setOnboardingOpen,
+    notifications,
+    notificationPreferences,
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
+    clearReadNotifications
+  } = useStudy();
 
-  const pendingRoutineCount = routineTasks.filter(t => t.status === 'pendente' || t.status === 'em_andamento').length;
-  const pendingReviewsCount = reviews.filter(r => r.status === 'pending').length;
-  const totalNotifications = pendingRoutineCount + (pendingReviewsCount > 0 ? 1 : 0);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'reviews' | 'routine'>('all');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setNotificationsOpen(false);
+      }
+    };
+    if (notificationsOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [notificationsOpen]);
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  const filteredNotifications = notifications.filter((notif) => {
+    if (activeTab === 'unread') return !notif.isRead;
+    if (activeTab === 'reviews') return notif.category === 'spaced_review' || notif.category === 'flashcard';
+    if (activeTab === 'routine') return notif.category === 'routine_session' || notif.category === 'daily_goal';
+    return true;
+  });
+
+  const pushState = getPushPermissionState();
+  const pushActive = notificationPreferences.pushEnabled && pushState === 'granted';
 
   const formatHours = (minutes: number) => {
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
     return `${h}h ${m > 0 ? `${m}m` : ''}`;
+  };
+
+  const handleNotificationClick = (notif: typeof notifications[0]) => {
+    markNotificationAsRead(notif.id);
+    setNotificationsOpen(false);
+    if (notif.actionView) {
+      navigateTo(notif.actionView as any, notif.actionCourseId, notif.actionLessonId);
+    }
   };
 
   return (
@@ -98,53 +156,208 @@ export const Header: React.FC<HeaderProps> = ({ setMobileOpen }) => {
           <span>Quiz ITA</span>
         </button>
 
-        {/* Notifications Dropdown */}
-        <div className="relative">
+        {/* Full Notification Center Dropdown */}
+        <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setNotificationsOpen(!notificationsOpen)}
-            className="relative p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
-            title="Lembretes e Notificações"
+            className={`relative p-2 rounded-lg transition-colors ${
+              notificationsOpen
+                ? 'bg-slate-800 text-white'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+            title="Central de Lembretes & Notificações"
+            aria-label="Central de Lembretes & Notificações"
           >
             <Bell className="w-4 h-4" />
-            {totalNotifications > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-500 animate-ping" />
-            )}
-            {totalNotifications > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-500" />
+            {unreadCount > 0 && (
+              <>
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-500 animate-ping" />
+                <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 rounded-full bg-blue-600 text-white text-[9px] font-bold flex items-center justify-center font-mono shadow-xs">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              </>
             )}
           </button>
 
           {notificationsOpen && (
-            <div className="absolute right-0 mt-2 w-80 bg-[#0E1526] border border-slate-800 rounded-xl shadow-2xl py-3 px-4 z-50 animate-in fade-in slide-in-from-top-2">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800 mb-2">
-                <span className="font-bold text-xs text-white">Central de Lembretes</span>
-                <span className="text-[10px] text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded font-mono">
-                  {totalNotifications} pendências
+            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-[#0B1120] border border-slate-800 rounded-2xl shadow-2xl py-3 px-3 z-50 animate-in fade-in slide-in-from-top-2 flex flex-col max-h-[85vh] overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center justify-between pb-2.5 border-b border-slate-800 px-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center">
+                    <Bell className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-xs text-white">Central de Lembretes</h3>
+                    <p className="text-[10px] text-slate-400">Revisões programadas e sessões de estudo</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-blue-300 bg-blue-500/15 border border-blue-500/25 px-2 py-0.5 rounded font-mono font-semibold">
+                    {unreadCount} nova{unreadCount === 1 ? '' : 's'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Status and quick channel indicator */}
+              <div className="flex items-center justify-between px-2 py-1.5 mt-2 rounded-lg bg-slate-900/80 border border-slate-800/80 text-[10px]">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-slate-300 font-medium">Internas: Ativas (Prioritárias)</span>
+                </div>
+
+                <span className={`px-1.5 py-0.2 rounded font-mono text-[9px] ${
+                  pushActive 
+                    ? 'text-cyan-400 bg-cyan-950/60 border border-cyan-800/40' 
+                    : 'text-slate-400 bg-slate-800 border border-slate-700'
+                }`}>
+                  Push: {pushActive ? 'Ativo' : 'Em Segundo Plano'}
                 </span>
               </div>
 
-              <div className="space-y-2 text-xs">
-                {pendingRoutineCount > 0 ? (
-                  <div
-                    onClick={() => { navigateTo('routine'); setNotificationsOpen(false); }}
-                    className="p-2 rounded-lg bg-blue-950/40 border border-blue-800/40 hover:bg-blue-900/30 cursor-pointer transition-colors"
-                  >
-                    <p className="font-semibold text-blue-300">Rotina de Estudos de Hoje</p>
-                    <p className="text-slate-400 text-[11px]">Você tem {pendingRoutineCount} tarefas agendadas para cumprir.</p>
-                  </div>
-                ) : (
-                  <p className="text-slate-400 text-[11px]">Todas as tarefas de hoje foram concluídas!</p>
-                )}
+              {/* Category Filter Tabs */}
+              <div className="flex items-center gap-1 mt-2.5 p-1 bg-slate-900 rounded-xl border border-slate-800/80 text-[11px]">
+                <button
+                  onClick={() => setActiveTab('all')}
+                  className={`flex-1 py-1 rounded-lg font-medium transition-colors ${
+                    activeTab === 'all'
+                      ? 'bg-blue-600 text-white font-bold shadow-xs'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Todas ({notifications.length})
+                </button>
+                <button
+                  onClick={() => setActiveTab('unread')}
+                  className={`flex-1 py-1 rounded-lg font-medium transition-colors ${
+                    activeTab === 'unread'
+                      ? 'bg-blue-600 text-white font-bold shadow-xs'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Não Lidas ({unreadCount})
+                </button>
+                <button
+                  onClick={() => setActiveTab('reviews')}
+                  className={`flex-1 py-1 rounded-lg font-medium transition-colors ${
+                    activeTab === 'reviews'
+                      ? 'bg-blue-600 text-white font-bold shadow-xs'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Revisões
+                </button>
+                <button
+                  onClick={() => setActiveTab('routine')}
+                  className={`flex-1 py-1 rounded-lg font-medium transition-colors ${
+                    activeTab === 'routine'
+                      ? 'bg-blue-600 text-white font-bold shadow-xs'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Sessões
+                </button>
+              </div>
 
-                {pendingReviewsCount > 0 && (
-                  <div
-                    onClick={() => { navigateTo('reviews'); setNotificationsOpen(false); }}
-                    className="p-2 rounded-lg bg-purple-950/40 border border-purple-800/40 hover:bg-purple-900/30 cursor-pointer transition-colors"
-                  >
-                    <p className="font-semibold text-purple-300">Revisões Espaçadas</p>
-                    <p className="text-slate-400 text-[11px]">{pendingReviewsCount} conteúdos aguardando revisão programada.</p>
+              {/* Bulk Actions */}
+              <div className="flex items-center justify-between px-1 py-2 text-[10px] text-slate-400">
+                <button
+                  onClick={markAllNotificationsAsRead}
+                  disabled={unreadCount === 0}
+                  className="hover:text-blue-400 flex items-center gap-1 transition-colors disabled:opacity-40 cursor-pointer"
+                >
+                  <CheckCheck className="w-3 h-3" />
+                  <span>Marcar todas como lidas</span>
+                </button>
+
+                <button
+                  onClick={clearReadNotifications}
+                  className="hover:text-rose-400 flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  <span>Limpar lidas</span>
+                </button>
+              </div>
+
+              {/* Notification Items List */}
+              <div className="space-y-2 overflow-y-auto max-h-72 pr-1 custom-scrollbar">
+                {filteredNotifications.length > 0 ? (
+                  filteredNotifications.map((notif) => {
+                    const catInfo = NOTIFICATION_CATEGORY_INFO[notif.category] || NOTIFICATION_CATEGORY_INFO.system;
+                    return (
+                      <div
+                        key={notif.id}
+                        onClick={() => handleNotificationClick(notif)}
+                        className={`p-3 rounded-xl border transition-all cursor-pointer relative group ${
+                          !notif.isRead
+                            ? 'bg-slate-900/90 border-blue-500/40 hover:border-blue-400 shadow-xs'
+                            : 'bg-slate-950/40 border-slate-800/80 hover:border-slate-700 opacity-80 hover:opacity-100'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${catInfo.badgeClass}`}>
+                              {catInfo.label}
+                            </span>
+                            {notif.priority === 'urgent' && (
+                              <span className="text-[9px] font-bold uppercase bg-rose-500/20 text-rose-300 border border-rose-500/30 px-1.5 py-0.5 rounded">
+                                Urgente
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className="text-[10px] text-slate-500 font-mono">
+                              {formatRelativeTime(notif.createdAt)}
+                            </span>
+                            {!notif.isRead && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" title="Não lida" />
+                            )}
+                          </div>
+                        </div>
+
+                        <h4 className="text-xs font-bold text-white group-hover:text-blue-300 transition-colors">
+                          {notif.title}
+                        </h4>
+                        <p className="text-[11px] text-slate-300 mt-0.5 line-clamp-2 leading-relaxed">
+                          {notif.message}
+                        </p>
+
+                        <div className="flex items-center justify-between pt-2 mt-2 border-t border-slate-800/60 text-[10px]">
+                          <span className="text-slate-400 flex items-center gap-1">
+                            <Volume2 className="w-2.5 h-2.5 text-blue-400" />
+                            Lembrete Interno
+                          </span>
+
+                          <span className="text-blue-400 font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                            {notif.actionLabel || 'Acessar'}
+                            <ArrowRight className="w-2.5 h-2.5" />
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="p-6 text-center text-slate-500 bg-slate-900/40 rounded-xl border border-slate-800/80 text-xs">
+                    <Bell className="w-6 h-6 mx-auto mb-2 text-slate-600" />
+                    <span>Nenhum lembrete nesta categoria no momento.</span>
                   </div>
                 )}
+              </div>
+
+              {/* Footer with settings link */}
+              <div className="pt-2.5 mt-2 border-t border-slate-800 flex items-center justify-between px-1">
+                <button
+                  onClick={() => {
+                    navigateTo('settings');
+                    setNotificationsOpen(false);
+                  }}
+                  className="w-full py-1.5 px-2.5 rounded-xl bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  <Settings className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Gerenciar Preferências por Categoria</span>
+                </button>
               </div>
             </div>
           )}
@@ -180,3 +393,4 @@ export const Header: React.FC<HeaderProps> = ({ setMobileOpen }) => {
     </header>
   );
 };
+

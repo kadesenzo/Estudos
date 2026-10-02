@@ -223,8 +223,52 @@ export interface UserProfile {
   totalStudyMinutes: number;
   completedLessonsCount: number;
   stoppedCheckpoints?: Record<string, string>; // courseId -> lessonTitle or description
+  notificationPreferences?: NotificationPreferences;
   createdAt: string;
   updatedAt: string;
+}
+
+export type NotificationCategory =
+  | 'spaced_review'
+  | 'flashcard'
+  | 'routine_session'
+  | 'daily_goal'
+  | 'quiz_exam'
+  | 'system';
+
+export interface InAppNotification {
+  id: string;
+  userId: string;
+  category: NotificationCategory;
+  title: string;
+  message: string;
+  actionLabel?: string;
+  actionView?: string; // AppView name
+  actionCourseId?: string;
+  actionLessonId?: string;
+  isRead: boolean;
+  createdAt: string;
+  scheduledFor?: string;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+}
+
+export interface NotificationCategoryPreferences {
+  spacedReviews: boolean;
+  flashcards: boolean;
+  routineTasks: boolean;
+  dailyGoal: boolean;
+  quizExams: boolean;
+}
+
+export interface NotificationPreferences {
+  enabled: boolean;
+  pushEnabled: boolean;
+  internalEnabled: boolean; // Always prioritized when push is unavailable
+  soundEnabled: boolean;
+  categories: NotificationCategoryPreferences;
+  advanceMinutesForRoutine: number; // e.g. 0, 5, 10, 15
+  morningReviewReminderTime: string; // e.g. "08:00"
+  eveningGoalReminderTime: string; // e.g. "19:30"
 }
 
 export interface MilitaryExamInfo {
@@ -249,4 +293,173 @@ export interface MilitaryExamInfo {
     topics: { id: string; title: string; isChecked: boolean }[];
   }[];
   tips: string;
+}
+
+export type SummaryCategory =
+  | 'aula'
+  | 'materia'
+  | 'modulo'
+  | 'prova'
+  | 'revisao_rapida'
+  | 'formulas_regras'
+  | 'livros_apostilas';
+
+export interface EducationalSummary {
+  id: string;
+  userId: string;
+  title: string;
+  category: SummaryCategory;
+  subject: string;
+  topic?: string;
+  courseId?: string;
+  courseTitle?: string;
+  lessonId?: string;
+  lessonTitle?: string;
+  content: string; // Markdown / formatted text
+  subheadings?: string[];
+  keyConcepts?: string[];
+  definitions?: { term: string; meaning: string }[];
+  formulas?: string[];
+  solvedExamples?: { problem: string; solution: string }[];
+  practicalExamples?: string[];
+  tags: string[];
+  isFavorite?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PastExam {
+  id: string;
+  institution: 'ITA' | 'IME' | 'AFA' | 'EFOMM' | 'EsPCEx' | 'Colégio Naval' | 'EEAR' | 'Outros';
+  year: number;
+  title: string;
+  phase: string; // 1ª Fase, 2ª Fase, Prova Única
+  subjects: string[];
+  totalQuestions: number;
+  durationMinutes: number;
+  pdfQuestionUrl?: string;
+  pdfAnswerUrl?: string;
+  officialSourceUrl?: string;
+  isOfficial: boolean;
+  questions?: Question[];
+  solvedCount?: number;
+  scorePercent?: number;
+  createdAt?: string;
+}
+
+export interface MindMapNode {
+  id: string;
+  label: string;
+  description?: string;
+  keywords?: string[];
+  color?: string;
+  icon?: string;
+  children?: MindMapNode[];
+}
+
+export interface MindMap {
+  id: string;
+  userId: string;
+  title: string;
+  subject: string;
+  courseId?: string;
+  courseTitle?: string;
+  rootNode: MindMapNode;
+  tags: string[];
+  isFavorite?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FormulaItem {
+  id: string;
+  title: string;
+  subject: string;
+  category: 'Matemática' | 'Física' | 'Química' | 'Português' | 'Redação' | 'Geral';
+  topic: string;
+  expression: string; // The formula or rule
+  explanation: string;
+  example?: string;
+  exceptions?: string;
+  tags: string[];
+  isFavorite?: boolean;
+  createdAt?: string;
+}
+
+export interface ExerciseList {
+  id: string;
+  userId: string;
+  name: string;
+  description?: string;
+  subject: string;
+  topic?: string;
+  courseId?: string;
+  moduleId?: string;
+  lessonId?: string;
+  questionIds: string[];
+  isCompleted?: boolean;
+  solvedCount?: number;
+  correctCount?: number;
+  deadline?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LearningPathMilestone {
+  id: string;
+  title: string;
+  description: string;
+  subject: string;
+  targetType: 'course' | 'module' | 'lesson' | 'quiz' | 'summary' | 'exercise_list';
+  targetId?: string;
+  durationHours: number;
+  isCompleted: boolean;
+  prerequisites?: string[]; // IDs of previous milestones
+}
+
+export interface LearningPath {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  category: string; // e.g. ITA / IME, AFA / EFOMM, EsPCEx, Geral
+  difficulty: 'Iniciante' | 'Intermediário' | 'Avançado' | 'Elite Militar';
+  icon: string;
+  bannerUrl?: string;
+  milestones: LearningPathMilestone[];
+  progressPercent: number;
+  isEnrolled: boolean;
+}
+
+export interface EssayCompetency {
+  name: string;
+  description: string;
+  maxScore: number;
+  score?: number;
+  feedback?: string;
+}
+
+export interface Essay {
+  id: string;
+  userId: string;
+  title: string;
+  theme: string;
+  subjectOrExam: string; // ITA, EsPCEx, AFA, Fuvest, Geral
+  content: string; // The written essay
+  wordCount: number;
+  lineCount: number;
+  status: 'draft' | 'submitted' | 'corrected';
+  aiFeedback?: {
+    overallScore: number;
+    maxScore: number;
+    summary: string;
+    strengths: string[];
+    weaknesses: string[];
+    suggestions: string[];
+    competencies: EssayCompetency[];
+  };
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
 }

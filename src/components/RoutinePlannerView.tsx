@@ -18,7 +18,8 @@ import {
   ChevronRight,
   Video,
   Layers,
-  ExternalLink
+  ExternalLink,
+  Bell
 } from 'lucide-react';
 import { useStudy } from '../context/StudyContext';
 import { RoutineTask, SubjectCategory } from '../types';
@@ -34,7 +35,8 @@ export const RoutinePlannerView: React.FC = () => {
     profile,
     updateProfile,
     courses,
-    navigateTo
+    navigateTo,
+    triggerNotification
   } = useStudy();
 
   const [activeTab, setActiveTab] = useState<'today' | 'schedule_progress' | 'goals'>('schedule_progress');
@@ -665,9 +667,29 @@ export const RoutinePlannerView: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 pt-2 sm:pt-0 border-t sm:border-0 border-slate-800 w-full sm:w-auto justify-between sm:justify-end">
+                    {!isDone && (
+                      <button
+                        onClick={() => {
+                          triggerNotification({
+                            category: 'routine_session',
+                            title: `Lembrete de Estudo: ${task.title}`,
+                            message: `Horário: ${task.scheduledTime} (${task.durationMinutes} min de ${task.subject}). Inicie agora para manter seu ritmo!`,
+                            actionLabel: 'Iniciar Foco',
+                            actionView: 'routine',
+                            priority: 'urgent'
+                          });
+                        }}
+                        className="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium flex items-center gap-1 transition-colors cursor-pointer border border-slate-700/80"
+                        title="Disparar notificação desta tarefa"
+                      >
+                        <Bell className="w-3 h-3 text-blue-400" />
+                        <span className="hidden sm:inline">Lembrar</span>
+                      </button>
+                    )}
+
                     <button
                       onClick={() => handleStartTimer(task.durationMinutes, task.subject)}
-                      className="px-2.5 py-1 rounded-md bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 text-xs font-medium flex items-center gap-1 transition-colors"
+                      className="px-2.5 py-1 rounded-md bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 text-xs font-medium flex items-center gap-1 transition-colors cursor-pointer"
                       title="Lançar no cronômetro"
                     >
                       <Play className="w-3 h-3" />

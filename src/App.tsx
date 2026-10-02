@@ -20,6 +20,7 @@ import { AIAssistantView } from './components/AIAssistantView';
 import { SettingsView } from './components/SettingsView';
 import { GlobalSearchModal } from './components/GlobalSearchModal';
 import { OnboardingModal } from './components/OnboardingModal';
+import { InAppNotificationToast } from './components/InAppNotificationToast';
 import {
   LayoutDashboard,
   BookOpen,
@@ -122,6 +123,9 @@ const MainLayout: React.FC = () => {
 
       {/* Onboarding & Diagnostic Quiz Modal */}
       <OnboardingModal isOpen={onboardingOpen} onClose={() => setOnboardingOpen(false)} />
+
+      {/* Floating In-App Interactive Notification Toast */}
+      <InAppNotificationToast />
     </div>
   );
 };
