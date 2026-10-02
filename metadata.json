@@ -1,0 +1,6 @@
+{
+  "name": "AETHON Militar — Plataforma Pessoal de Estudos",
+  "description": "Plataforma de alta performance para estudos, concursos militares (ESA, EsPCEx, EEAR, AFA, Naval) e vestibulares, com organização de cursos, videoaulas, caderno, simulados e cronograma.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,242 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with study preferences, goals, and statistics",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 150 },
+        "targetExam": { "type": "string", "maxLength": 50 },
+        "dailyGoalMinutes": { "type": "number" },
+        "streakDays": { "type": "number" },
+        "lastStudyDate": { "type": "string", "maxLength": 20 },
+        "totalStudyMinutes": { "type": "number" },
+        "completedLessonsCount": { "type": "number" },
+        "createdAt": { "type": "string", "maxLength": 50 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["userId", "email"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "Course item created or imported by user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "category": { "type": "string", "maxLength": 50 },
+        "instructor": { "type": "string", "maxLength": 100 },
+        "institution": { "type": "string", "maxLength": 100 },
+        "coverUrl": { "type": "string", "maxLength": 500 },
+        "originalUrl": { "type": "string", "maxLength": 500 },
+        "platform": { "type": "string", "maxLength": 50 },
+        "modulesCount": { "type": "number" },
+        "lessonsCount": { "type": "number" },
+        "isFavorite": { "type": "boolean" },
+        "progressPercent": { "type": "number" },
+        "lastLessonId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "maxLength": 50 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "userId", "title", "category"]
+    },
+    "Lesson": {
+      "title": "Lesson",
+      "description": "Lesson belonging to a course and module",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "courseId": { "type": "string", "maxLength": 128 },
+        "moduleId": { "type": "string", "maxLength": 128 },
+        "moduleTitle": { "type": "string", "maxLength": 150 },
+        "title": { "type": "string", "maxLength": 250 },
+        "type": { "type": "string", "enum": ["video", "pdf", "article"] },
+        "mediaUrl": { "type": "string", "maxLength": 1000 },
+        "durationMinutes": { "type": "number" },
+        "sizeMb": { "type": "number" },
+        "order": { "type": "number" },
+        "isCompleted": { "type": "boolean" },
+        "completedAt": { "type": "string", "maxLength": 50 },
+        "notes": { "type": "string", "maxLength": 5000 },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "userId", "courseId", "title", "type"]
+    },
+    "StudyNote": {
+      "title": "StudyNote",
+      "description": "Notebook note with tags, subject, and status",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "content": { "type": "string", "maxLength": 20000 },
+        "subject": { "type": "string", "maxLength": 60 },
+        "courseId": { "type": "string", "maxLength": 128 },
+        "lessonId": { "type": "string", "maxLength": 128 },
+        "status": { "type": "string", "enum": ["aprendi", "revisar", "dificuldade", "importante"] },
+        "isFavorite": { "type": "boolean" },
+        "tags": { "type": "string", "maxLength": 200 },
+        "createdAt": { "type": "string", "maxLength": 50 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "userId", "title", "content", "subject"]
+    },
+    "Question": {
+      "title": "Question",
+      "description": "Question bank item",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "statement": { "type": "string", "maxLength": 5000 },
+        "options": { "type": "string", "maxLength": 5000 },
+        "correctIndex": { "type": "number" },
+        "explanation": { "type": "string", "maxLength": 3000 },
+        "subject": { "type": "string", "maxLength": 60 },
+        "topic": { "type": "string", "maxLength": 100 },
+        "difficulty": { "type": "string", "enum": ["facil", "medio", "dificil"] },
+        "origin": { "type": "string", "maxLength": 100 },
+        "courseId": { "type": "string", "maxLength": 128 },
+        "isFavorite": { "type": "boolean" },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "userId", "statement", "subject", "difficulty"]
+    },
+    "Quiz": {
+      "title": "Quiz",
+      "description": "Simulated exam created by user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 500 },
+        "subject": { "type": "string", "maxLength": 60 },
+        "questionCount": { "type": "number" },
+        "timeMinutes": { "type": "number" },
+        "difficulty": { "type": "string", "maxLength": 30 },
+        "questionsData": { "type": "string", "maxLength": 20000 },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "userId", "title"]
+    },
+    "QuizAttempt": {
+      "title": "QuizAttempt",
+      "description": "Result and report of completed simulated exam",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "quizId": { "type": "string", "maxLength": 128 },
+        "quizTitle": { "type": "string", "maxLength": 200 },
+        "scorePercent": { "type": "number" },
+        "correctCount": { "type": "number" },
+        "wrongCount": { "type": "number" },
+        "totalQuestions": { "type": "number" },
+        "timeSpentSeconds": { "type": "number" },
+        "completedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "userId", "quizTitle", "scorePercent"]
+    },
+    "Flashcard": {
+      "title": "Flashcard",
+      "description": "Spaced repetition flashcard",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "front": { "type": "string", "maxLength": 1000 },
+        "back": { "type": "string", "maxLength": 2000 },
+        "subject": { "type": "string", "maxLength": 60 },
+        "topic": { "type": "string", "maxLength": 100 },
+        "difficulty": { "type": "string", "enum": ["facil", "medio", "dificil"] },
+        "reviewsCount": { "type": "number" },
+        "nextReviewDate": { "type": "string", "maxLength": 30 },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "userId", "front", "back", "subject"]
+    },
+    "StudySession": {
+      "title": "StudySession",
+      "description": "Logged study session for analytics and hours counting",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "subject": { "type": "string", "maxLength": 60 },
+        "courseTitle": { "type": "string", "maxLength": 150 },
+        "activityType": { "type": "string", "enum": ["videoaula", "leitura", "questoes", "revisao"] },
+        "durationMinutes": { "type": "number" },
+        "date": { "type": "string", "maxLength": 20 },
+        "notes": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "userId", "subject", "durationMinutes", "date"]
+    },
+    "RoutineTask": {
+      "title": "RoutineTask",
+      "description": "Daily planned task in schedule",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 150 },
+        "subject": { "type": "string", "maxLength": 60 },
+        "scheduledTime": { "type": "string", "maxLength": 20 },
+        "durationMinutes": { "type": "number" },
+        "status": { "type": "string", "enum": ["pendente", "em_andamento", "concluida"] },
+        "date": { "type": "string", "maxLength": 20 },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "userId", "title", "status", "date"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profile document"
+    },
+    "/courses/{courseId}": {
+      "schema": { "$ref": "#/entities/Course" },
+      "description": "Courses collection"
+    },
+    "/lessons/{lessonId}": {
+      "schema": { "$ref": "#/entities/Lesson" },
+      "description": "Lessons and educational materials collection"
+    },
+    "/notes/{noteId}": {
+      "schema": { "$ref": "#/entities/StudyNote" },
+      "description": "Personal notebook notes"
+    },
+    "/questions/{questionId}": {
+      "schema": { "$ref": "#/entities/Question" },
+      "description": "Personal question bank"
+    },
+    "/quizzes/{quizId}": {
+      "schema": { "$ref": "#/entities/Quiz" },
+      "description": "Simulated exams"
+    },
+    "/quizAttempts/{attemptId}": {
+      "schema": { "$ref": "#/entities/QuizAttempt" },
+      "description": "Simulated exam results"
+    },
+    "/flashcards/{flashcardId}": {
+      "schema": { "$ref": "#/entities/Flashcard" },
+      "description": "Spaced repetition flashcards"
+    },
+    "/studySessions/{sessionId}": {
+      "schema": { "$ref": "#/entities/StudySession" },
+      "description": "Study duration analytics sessions"
+    },
+    "/routineTasks/{taskId}": {
+      "schema": { "$ref": "#/entities/RoutineTask" },
+      "description": "Daily study routine tasks"
+    }
+  }
+}
