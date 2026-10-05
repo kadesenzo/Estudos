@@ -189,6 +189,8 @@ interface StudyContextType {
   resetPasswordHandler: (email: string) => Promise<void>;
   loginWithGoogleHandler: () => Promise<void>;
   loginAsGuestHandler: () => Promise<void>;
+  loginWithPinHandler: (usernameOrCadetName: string, pin: string, targetExam?: string) => Promise<void>;
+  loginQuickCadetHandler: (cadetName?: string, targetExam?: string) => Promise<void>;
   updateProfile: (data: Partial<UserProfile>) => Promise<void>;
   // Notifications & Reminders
   notificationPreferences: NotificationPreferences;
