@@ -239,5 +239,184 @@ export const INITIAL_QUESTIONS: Question[] = [
     origin: 'ITA 1ª Fase',
     isFavorite: true,
     createdAt: '2025-01-01T00:00:00Z'
+  },
+
+  // ==========================================
+  // MATEMÁTICA BÁSICA & OPERAÇÕES (FERRETTO / APOSTILA 720)
+  // ==========================================
+  {
+    id: 'mat-bas-01',
+    userId: 'public',
+    statement: '(Ferretto / Enem) Todos os anos, a Receita Federal alerta os contribuintes para não deixarem o envio de seus dados para o último dia do prazo de entrega. A quatro dias do prazo final, contabilizou-se o recebimento de 16,2 milhões de declarações, o equivalente a cerca de 60% do total estimado pela Receita Federal. Nesse mesmo momento, a média de entrada era de 90.000 declarações por hora (24h/dia). Permanecendo essa média nos últimos 4 dias, qual a quantidade aproximada de pessoas que terão que pagar multa por atraso?',
+    options: ['2,16 milhões', '4,05 milhões', '6,21 milhões', '7,65 milhões', '8,64 milhões'],
+    correctIndex: 0,
+    explanation: '1. Total estimado pela Receita Federal: 16,2 milhões = 60% => Total = 16,2 / 0,60 = 27,0 milhões de declarações.\n2. Declarações que ainda faltavam ser entregues: 27,0 - 16,2 = 10,8 milhões.\n3. Capacidade de recebimento nos 4 dias restantes: 4 dias * 24 horas/dia = 96 horas. Em 96 horas, a 90.000 declarações/hora: 96 * 90.000 = 8.640.000 = 8,64 milhões de declarações entregues a tempo.\n4. Pessoas que terão que pagar multa (atrasadas): 10,8 milhões - 8,64 milhões = 2,16 milhões de pessoas.',
+    subject: 'Matemática',
+    topic: 'Operações Básicas & Proporção',
+    difficulty: 'medio',
+    origin: 'Enem / Ferretto',
+    isFavorite: true,
+    createdAt: '2026-10-04T00:00:00Z'
+  },
+  {
+    id: 'mat-bas-02',
+    userId: 'public',
+    statement: '(Ferretto / Enem) A disparidade de volume entre os planetas é tão grande que seria possível colocá-los uns dentro dos outros. O planeta Mercúrio é o menor de todos. Marte é o segundo menor: dentro dele cabem 3 Mercúrios. Terra é o único com vida: dentro dela cabem 7 Martes. Netuno é o quarto maior: dentro dele cabem 58 Terras. Júpiter é o maior dos planetas: dentro dele cabem 23 Netunos. Seguindo o raciocínio proposto, quantas Terras cabem dentro de Júpiter?',
+    options: ['406', '1 334', '4 002', '9 338', '28 014'],
+    correctIndex: 1,
+    explanation: '1. Dentro de 1 Netuno cabem 58 Terras.\n2. Dentro de Júpiter cabem 23 Netunos.\n3. Portanto, em Júpiter cabem: 23 * 58 Terras = 1.334 Terras.\n(Cálculo mental rápido: 23 * 60 - 23 * 2 = 1380 - 46 = 1334).',
+    subject: 'Matemática',
+    topic: 'Operações Básicas & Multiplicação',
+    difficulty: 'facil',
+    origin: 'Enem / Ferretto',
+    isFavorite: false,
+    createdAt: '2026-10-04T00:00:00Z'
+  },
+  {
+    id: 'mat-bas-03',
+    userId: 'public',
+    statement: '(Apostila 720 / Produtos Notáveis) Determine o valor de (3x + 2y)², sabendo que 9x² + 4y² = 25 e que x · y = 2.',
+    options: ['27', '31', '38', '49', '54'],
+    correctIndex: 3,
+    explanation: 'Desenvolvendo o produto notável do quadrado da soma de dois termos:\n(3x + 2y)² = (3x)² + 2 · (3x) · (2y) + (2y)²\n(3x + 2y)² = 9x² + 12xy + 4y²\nAgrupando os termos fornecidos no enunciado:\n(3x + 2y)² = (9x² + 4y²) + 12(xy)\nSubstituindo os valores dados (9x² + 4y² = 25 e xy = 2):\n(3x + 2y)² = 25 + 12 · (2) = 25 + 24 = 49.',
+    subject: 'Matemática',
+    topic: 'Produtos Notáveis e Fatoração',
+    difficulty: 'facil',
+    origin: 'Apostila 720 Questões',
+    isFavorite: true,
+    createdAt: '2026-10-04T00:00:00Z'
+  },
+  {
+    id: 'mat-bas-04',
+    userId: 'public',
+    statement: '(Apostila 720 / Fatoração) Se x + y = 13 e x · y = 1, então o valor de x² + y² é:',
+    options: ['166', '167', '168', '169', '170'],
+    correctIndex: 1,
+    explanation: 'Sabemos que (x + y)² = x² + 2xy + y².\nLogo, x² + y² = (x + y)² - 2xy.\nSubstituindo os valores conhecidos:\nx² + y² = (13)² - 2 · (1) = 169 - 2 = 167.',
+    subject: 'Matemática',
+    topic: 'Produtos Notáveis e Fatoração',
+    difficulty: 'facil',
+    origin: 'Apostila 720 Questões',
+    isFavorite: false,
+    createdAt: '2026-10-04T00:00:00Z'
+  },
+  {
+    id: 'mat-bas-05',
+    userId: 'public',
+    statement: '(Apostila 720 / Radiciação) O valor exato da raiz cúbica de 1.728 (³√1728) e o valor simplificado da expressão √50 - √18 + √98 são, respectivamente:',
+    options: ['12 e 9√2', '15 e 5√2', '18 e 9√2', '12 e 15√2', '14 e 7√2'],
+    correctIndex: 0,
+    explanation: '1. Fatorando 1728 em primos: 1728 = 2⁶ · 3³ = (2² · 3)³ = 12³. Logo, ³√1728 = 12.\n2. Simplificando os radicais:\n- √50 = √(25 · 2) = 5√2\n- √18 = √(9 · 2) = 3√2\n- √98 = √(49 · 2) = 7√2\nSomando: 5√2 - 3√2 + 7√2 = (5 - 3 + 7)√2 = 9√2.',
+    subject: 'Matemática',
+    topic: 'Radiciação e Fatoração',
+    difficulty: 'facil',
+    origin: 'Apostila 720 Questões',
+    isFavorite: true,
+    createdAt: '2026-10-04T00:00:00Z'
+  },
+  {
+    id: 'mat-bas-06',
+    userId: 'public',
+    statement: '(Apostila 720 / MMC e MDC) Três viajantes partem num mesmo dia de uma cidade A. Cada um desses três viajantes retorna à cidade A exatamente a cada 30, 48 e 72 dias, respectivamente. O número mínimo de dias transcorridos para que os três viajantes estejam juntos novamente na cidade A é:',
+    options: ['144', '240', '360', '480', '720'],
+    correctIndex: 4,
+    explanation: 'O próximo encontro ocorrerá no Mínimo Múltiplo Comum: MMC(30, 48, 72).\nFatorando cada número:\n- 30 = 2 · 3 · 5\n- 48 = 2⁴ · 3\n- 72 = 2³ · 3²\nO MMC toma os fatores comuns e não comuns com os maiores expoentes:\nMMC = 2⁴ · 3² · 5 = 16 · 9 · 5 = 144 · 5 = 720 dias.',
+    subject: 'Matemática',
+    topic: 'Aritmética & MMC e MDC',
+    difficulty: 'medio',
+    origin: 'Apostila 720 Questões',
+    isFavorite: false,
+    createdAt: '2026-10-04T00:00:00Z'
+  },
+
+  // ==========================================
+  // FÍSICA BÁSICA (APOSTILA 720)
+  // ==========================================
+  {
+    id: 'fis-bas-01',
+    userId: 'public',
+    statement: '(Apostila 720 / Vetores) Dois vetores V1 e V2 possuem módulos iguais a 5 unidades e 12 unidades, respectivamente. Se a resultante R = V1 + V2 tem módulo igual a 13 unidades, podemos afirmar corretamente que o ângulo entre os vetores V1 e V2 vale:',
+    options: ['0º', '45º', '90º', '180º', '60º'],
+    correctIndex: 2,
+    explanation: 'Pela Lei dos Cossenos para soma vetorial: R² = V1² + V2² + 2·V1·V2·cos(θ).\nSubstituindo os valores dados:\n13² = 5² + 12² + 2(5)(12)·cos(θ)\n169 = 25 + 144 + 120·cos(θ)\n169 = 169 + 120·cos(θ) => 120·cos(θ) = 0 => cos(θ) = 0 => θ = 90º.\nTrata-se exatamente da clássica terna pitagórica (5, 12, 13) de dois vetores perpendiculares entre si.',
+    subject: 'Física',
+    topic: 'Vetores e Operações Vetoriais',
+    difficulty: 'facil',
+    origin: 'Apostila 720 Questões',
+    isFavorite: true,
+    createdAt: '2026-10-04T00:00:00Z'
+  },
+  {
+    id: 'fis-bas-02',
+    userId: 'public',
+    statement: '(Apostila 720 / Roldanas) De quanto a força muscular aplicada fica reduzida utilizando-se um sistema com 1 roldana fixa e 1 roldana móvel ideal em equilíbrio?',
+    options: ['10%', '30%', '50%', '70%', '90%'],
+    correctIndex: 2,
+    explanation: 'Em um sistema com uma roldana móvel, o peso do objeto é dividido igualmente pelos dois ramos da corda sustentada pela roldana móvel.\nPortanto, a força necessária para equilibrar ou elevar a carga de peso P é F = P / 2 = 0,50 P, o que representa uma redução de 50% no esforço exigido.',
+    subject: 'Física',
+    topic: 'Leis de Newton & Roldanas',
+    difficulty: 'facil',
+    origin: 'Apostila 720 Questões',
+    isFavorite: false,
+    createdAt: '2026-10-04T00:00:00Z'
+  },
+  {
+    id: 'fis-bas-03',
+    userId: 'public',
+    statement: '(Apostila 720 / Leis de Newton) Um corpo de massa igual a 4 kg é submetido à ação simultânea e exclusiva de duas forças constantes de intensidades iguais a 4 N e 6 N. O maior valor possível para a aceleração desse corpo é de:',
+    options: ['10,0 m/s²', '6,5 m/s²', '4,0 m/s²', '3,0 m/s²', '2,5 m/s²'],
+    correctIndex: 4,
+    explanation: 'A aceleração máxima é obtida quando a força resultante for máxima, o que ocorre quando as duas forças atuam na mesma direção e no mesmo sentido (ângulo θ = 0°):\nF_res_max = 6 N + 4 N = 10 N.\nPela Segunda Lei de Newton (F = m · a):\na_max = F_res_max / m = 10 N / 4 kg = 2,5 m/s².',
+    subject: 'Física',
+    topic: 'Leis de Newton & Dinâmica',
+    difficulty: 'facil',
+    origin: 'Apostila 720 Questões',
+    isFavorite: false,
+    createdAt: '2026-10-04T00:00:00Z'
+  },
+
+  // ==========================================
+  // QUÍMICA BÁSICA (APOSTILA 720)
+  // ==========================================
+  {
+    id: 'qui-bas-01',
+    userId: 'public',
+    statement: '(Apostila 720 / Densidade) O apodrecimento de um ovo gera a formação de gás sulfídrico (H2S), com odor característico de enxofre. Ao adicionar um ovo podre em um copo com água e um ovo normal (sadio) em outro copo, observa-se que o ovo:',
+    options: [
+      'sadio e o ovo podre irão afundar, pois possuem densidade maior que a da água.',
+      'podre irá boiar, pois a formação do H2S(g) expande bolsas gasosas e diminui a densidade média do conjunto.',
+      'podre irá afundar, pois a decomposição aumenta sua massa molar total.',
+      'sadio irá boiar, pois a ausência de bactérias torna a casca permeável ao ar.',
+      'sadio e o ovo podre flutuam em qualquer situação.'
+    ],
+    correctIndex: 1,
+    explanation: 'No ovo sadio, o conteúdo denso faz com que ele afunde na água (densidade do ovo sadio > densidade da água ≈ 1 g/cm³).\nÀ medida que o ovo se decompõe, as proteínas degradam-se e liberam gases (principalmente H2S e CO2), que aumentam o volume ocupado pelas câmaras gasosas internas e expulsam umidade pelos poros, diminuindo a densidade média do ovo. Assim, densidade do ovo podre < densidade da água, fazendo-o boiar.',
+    subject: 'Química',
+    topic: 'Propriedades da Matéria & Densidade',
+    difficulty: 'facil',
+    origin: 'Apostila 720 Questões',
+    isFavorite: true,
+    createdAt: '2026-10-04T00:00:00Z'
+  },
+  {
+    id: 'qui-bas-02',
+    userId: 'public',
+    statement: '(Apostila 720 / Ligações Químicas) Na molécula de metano (CH4), na molécula de água (H2O) e no dióxido de carbono (CO2), as geometrias moleculares e a polaridade das moléculas são, respectivamente:',
+    options: [
+      'Tetraédrica (apolar); Angular (polar); Linear (apolar)',
+      'Plana (polar); Linear (polar); Angular (apolar)',
+      'Piramidal (apolar); Angular (apolar); Linear (polar)',
+      'Tetraédrica (polar); Linear (apolar); Angular (polar)',
+      'Trigonal (apolar); Angular (polar); Linear (polar)'
+    ],
+    correctIndex: 0,
+    explanation: '1. CH4: O carbono central possui 4 pares de elétrons ligantes e zero pares isolados => Geometria Tetraédrica. Os 4 vetores de momento dipolar anulam-se por simetria espacial => Molécula Apolar.\n2. H2O: O oxigênio central possui 2 ligações simples e 2 pares de elétrons não ligantes (nuvens livres) => Geometria Angular. A resultante dos vetores momento dipolar é diferente de zero (μ ≠ 0) => Molécula Polar.\n3. CO2: O carbono central faz 2 duplas ligações (O=C=O) e não possui elétrons isolados => Geometria Linear (180°). Os vetores momento dipolar têm sentidos opostos e mesmo módulo, anulando-se (μ = 0) => Molécula Apolar.',
+    subject: 'Química',
+    topic: 'Geometria Molecular & Polaridade',
+    difficulty: 'medio',
+    origin: 'Apostila 720 Questões',
+    isFavorite: true,
+    createdAt: '2026-10-04T00:00:00Z'
   }
 ];
+

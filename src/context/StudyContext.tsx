@@ -46,7 +46,19 @@ import {
   INITIAL_LEARNING_PATHS,
   INITIAL_ESSAYS
 } from '../data/educationalContent';
-import { auth, db, loginWithGoogle, logoutUser, testFirestoreConnection, handleFirestoreError, OperationType } from '../lib/firebase';
+import {
+  auth,
+  db,
+  loginWithGoogle,
+  loginWithEmail,
+  registerWithEmail,
+  resetPassword,
+  loginAsGuest,
+  logoutUser,
+  testFirestoreConnection,
+  handleFirestoreError,
+  OperationType
+} from '../lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 
@@ -168,8 +180,15 @@ interface StudyContextType {
   deleteEssay: (essayId: string) => Promise<void>;
   gradeEssayWithAI: (essayId: string) => Promise<void>;
   // Auth & Profile
+  authModalOpen: boolean;
+  setAuthModalOpen: (open: boolean) => void;
   signIn: () => Promise<void>;
   signOutUser: () => Promise<void>;
+  loginWithEmailHandler: (email: string, pass: string) => Promise<void>;
+  registerWithEmailHandler: (name: string, email: string, pass: string, targetExam?: string) => Promise<void>;
+  resetPasswordHandler: (email: string) => Promise<void>;
+  loginWithGoogleHandler: () => Promise<void>;
+  loginAsGuestHandler: () => Promise<void>;
   updateProfile: (data: Partial<UserProfile>) => Promise<void>;
   // Notifications & Reminders
   notificationPreferences: NotificationPreferences;
@@ -220,6 +239,7 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [activeCourseId, setActiveCourseId] = useState<string | null>('course-mat-telegram');
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(() => {
     return localStorage.getItem('aethon_onboarding_completed') !== 'true';
   });
@@ -253,7 +273,15 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [questions, setQuestions] = useState<Question[]>(() => {
     const saved = localStorage.getItem('aethon_questions');
-    return saved ? JSON.parse(saved) : INITIAL_QUESTIONS;
+    if (saved) {
+      try {
+        const parsed: Question[] = JSON.parse(saved);
+        const savedIds = new Set(parsed.map(q => q.id));
+        const missingInitials = INITIAL_QUESTIONS.filter(q => !savedIds.has(q.id));
+        return [...parsed, ...missingInitials];
+      } catch (e) {}
+    }
+    return INITIAL_QUESTIONS;
   });
 
   const [questionAttempts, setQuestionAttempts] = useState<QuestionAttempt[]>(() => {
@@ -318,7 +346,15 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [exerciseLists, setExerciseLists] = useState<ExerciseList[]>(() => {
     const saved = localStorage.getItem('aethon_exercise_lists');
-    return saved ? JSON.parse(saved) : INITIAL_EXERCISE_LISTS;
+    if (saved) {
+      try {
+        const parsed: ExerciseList[] = JSON.parse(saved);
+        const savedIds = new Set(parsed.map(l => l.id));
+        const missingInitials = INITIAL_EXERCISE_LISTS.filter(l => !savedIds.has(l.id));
+        return [...parsed, ...missingInitials];
+      } catch (e) {}
+    }
+    return INITIAL_EXERCISE_LISTS;
   });
 
   const [learningPaths, setLearningPaths] = useState<LearningPath[]>(() => {
@@ -903,10 +939,57 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Auth
   const signIn = async () => {
+    setAuthModalOpen(true);
+  };
+
+  const loginWithGoogleHandler = async () => {
+    const loggedUser = await loginWithGoogle();
+    setUser(loggedUser);
+  };
+
+  const loginWithEmailHandler = async (email: string, pass: string) => {
+    const loggedUser = await loginWithEmail(email, pass);
+    setUser(loggedUser);
+  };
+
+  const registerWithEmailHandler = async (name: string, email: string, pass: string, targetExam?: string) => {
+    const registeredUser = await registerWithEmail(name, email, pass);
+    setUser(registeredUser);
+
+    const updatedProfile: UserProfile = {
+      ...profile,
+      userId: registeredUser.uid,
+      displayName: name.trim() || profile.displayName,
+      email: email.trim(),
+      targetExam: targetExam || profile.targetExam,
+      updatedAt: new Date().toISOString()
+    };
+    setProfile(updatedProfile);
+
     try {
-      await loginWithGoogle();
-    } catch (err) {
-      console.error("Login failed:", err);
+      await setDoc(doc(db, 'users', registeredUser.uid), updatedProfile);
+    } catch (e) {
+      console.warn("Could not save initial profile to Firestore:", e);
+    }
+  };
+
+  const resetPasswordHandler = async (email: string) => {
+    await resetPassword(email);
+  };
+
+  const loginAsGuestHandler = async () => {
+    try {
+      const guestUser = await loginAsGuest();
+      setUser(guestUser);
+    } catch (e) {
+      // Local fallback for guest mode
+      const dummyUser = {
+        uid: `guest-${Date.now()}`,
+        isAnonymous: true,
+        displayName: 'Cadete Convidado',
+        email: null
+      } as unknown as User;
+      setUser(dummyUser);
     }
   };
 
@@ -1580,8 +1663,15 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         updateEssay,
         deleteEssay,
         gradeEssayWithAI,
+        authModalOpen,
+        setAuthModalOpen,
         signIn,
         signOutUser,
+        loginWithEmailHandler,
+        registerWithEmailHandler,
+        resetPasswordHandler,
+        loginWithGoogleHandler,
+        loginAsGuestHandler,
         updateProfile,
         notificationPreferences,
         updateNotificationPreferences,

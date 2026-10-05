@@ -15,9 +15,11 @@ import {
   PlusCircle,
   RotateCcw,
   BookMarked,
-  BookmarkCheck
+  BookmarkCheck,
+  Compass
 } from 'lucide-react';
 import { useStudy } from '../context/StudyContext';
+import { ITA_WEEK_SCHEDULE } from '../data/itaRoutineData';
 
 export const DashboardView: React.FC = () => {
   const {
@@ -449,11 +451,60 @@ export const DashboardView: React.FC = () => {
             </div>
             <button
               onClick={() => navigateTo('routine')}
-              className="text-xs font-semibold text-blue-400 hover:text-blue-300 transition-colors"
+              className="text-xs font-semibold text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1 cursor-pointer"
             >
-              Organizar
+              <span>Ver Rota ITA 2031</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
+
+          {/* Rota ITA 2031 Today Schedule Widget */}
+          {(() => {
+            const todayDayIdx = new Date().getDay();
+            const todaySchedule = ITA_WEEK_SCHEDULE.find(d => d.dayIndex === todayDayIdx);
+
+            return (
+              <div className="bg-[#0B1120] border border-blue-900/30 rounded-xl p-4 space-y-3 shadow-md">
+                <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                  <div className="flex items-center gap-2">
+                    <Compass className="w-4 h-4 text-cyan-400" />
+                    <span className="text-xs font-bold text-white">
+                      {todaySchedule?.name || 'Hoje'} • Rota ITA 2031
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40">
+                    9h–11h & 21h–00h30
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  {todaySchedule?.blocks.map((block) => (
+                    <div
+                      key={block.id}
+                      onClick={() => navigateTo('routine')}
+                      className="p-2.5 rounded-lg bg-slate-900/70 hover:bg-slate-850 border border-slate-800/80 transition-colors cursor-pointer flex items-center justify-between gap-2.5 group"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono font-bold text-blue-400">
+                            {block.timeRange}
+                          </span>
+                          <span className="text-xs font-semibold text-white truncate group-hover:text-blue-300 transition-colors">
+                            {block.defaultSubject}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                          {block.description}
+                        </p>
+                      </div>
+
+                      <Play className="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 shrink-0" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
 
           <div className="bg-[#0B1120] border border-slate-800 rounded-xl p-4 space-y-2.5 shadow-md">
             {todayTasks.length > 0 ? (

@@ -42,7 +42,8 @@ export const SettingsView: React.FC = () => {
     notificationPreferences,
     updateNotificationPreferences,
     testNotification,
-    requestBrowserPushPermission
+    requestBrowserPushPermission,
+    setAuthModalOpen
   } = useStudy();
 
   const [displayName, setDisplayName] = useState(profile.displayName);
@@ -111,35 +112,66 @@ export const SettingsView: React.FC = () => {
         </p>
       </div>
 
-      {/* Cloud Sync Status Banner */}
-      <div className="bg-[#0B1120] border border-slate-800 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
+      {/* Cloud Sync Status & Account Control */}
+      <div className="bg-[#0B1120] border border-slate-800 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+        <div className="flex items-start sm:items-center gap-4">
+          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${
+            user ? 'bg-emerald-600/20 text-emerald-400 border-emerald-500/30' : 'bg-blue-600/20 text-blue-400 border-blue-500/30'
+          }`}>
             <Cloud className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white">Banco de Dados em Nuvem (Google Firestore)</h3>
-            <p className="text-xs text-slate-400 mt-0.5">
-              {user ? `Conectado como ${user.email}. Seus dados estão salvos com segurança.` : 'Conecte sua conta Google para sincronizar automaticamente entre computador e celular.'}
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-white">
+                {user ? 'Conta de Cadete Sincronizada' : 'Conta Não Conectada (Modo Offline / Local)'}
+              </h3>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded font-mono ${
+                user
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+              }`}>
+                {user ? 'Nuvem Ativa' : 'Local'}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+              {user
+                ? `Logado como ${user.email || profile.displayName}. Seu histórico de estudos, anotações e progresso estão salvos no Google Firestore.`
+                : 'Conecte ou crie sua conta com e-mail e senha ou Google para sincronizar suas anotações, flashcards e cronograma entre computador e celular.'}
             </p>
           </div>
         </div>
 
-        {user ? (
-          <button
-            onClick={signOutUser}
-            className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-red-500/20 text-slate-300 hover:text-red-400 text-xs font-semibold border border-slate-700 transition-colors self-start sm:self-auto"
-          >
-            Desconectar
-          </button>
-        ) : (
-          <button
-            onClick={signIn}
-            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-md shadow-blue-600/30 transition-all self-start sm:self-auto"
-          >
-            Entrar com Google
-          </button>
-        )}
+        <div className="flex items-center gap-2.5 self-start sm:self-auto shrink-0">
+          {user ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setAuthModalOpen(true)}
+                className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors cursor-pointer"
+                title="Trocar de conta ou vincular novo e-mail"
+              >
+                Trocar de Conta
+              </button>
+
+              <button
+                type="button"
+                onClick={signOutUser}
+                className="px-3.5 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 text-xs font-semibold border border-rose-800/40 transition-colors cursor-pointer"
+              >
+                Desconectar
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setAuthModalOpen(true)}
+              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/30 transition-all cursor-pointer flex items-center gap-2"
+            >
+              <User className="w-4 h-4" />
+              <span>Entrar / Criar Conta</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Profile Form */}

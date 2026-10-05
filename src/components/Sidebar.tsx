@@ -28,13 +28,13 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen }) => {
-  const { currentView, navigateTo, profile, user, signIn, signOutUser, setOnboardingOpen } = useStudy();
+  const { currentView, navigateTo, profile, user, signIn, signOutUser, setOnboardingOpen, setAuthModalOpen } = useStudy();
 
   const navItems: { view: AppView; label: string; icon: React.ElementType; badge?: string }[] = [
     { view: 'dashboard', label: 'Início', icon: LayoutDashboard },
     { view: 'courses', label: 'Meus Cursos', icon: BookOpen },
     { view: 'military', label: 'Concursos Militares', icon: Shield, badge: 'Oficial' },
-    { view: 'routine', label: 'Cronograma & Rotina', icon: Clock },
+    { view: 'routine', label: 'Rotina & Rota ITA', icon: Clock, badge: '2031' },
     { view: 'calendar', label: 'Calendário', icon: Calendar },
     { view: 'questions', label: 'Banco de Questões', icon: HelpCircle },
     { view: 'simulados', label: 'Simulados', icon: FileCheck2 },
@@ -165,21 +165,34 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen }) =
         </div>
 
         {/* User Card & Cloud Sync */}
-        <div className="p-4 border-t border-slate-800/70 bg-slate-950/40">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-slate-200 text-xs">
+        <div className="p-3.5 border-t border-slate-800/70 bg-slate-950/40">
+          <div className="flex items-center justify-between">
+            <div
+              onClick={() => {
+                if (user) {
+                  navigateTo('settings');
+                  setMobileOpen(false);
+                } else {
+                  setAuthModalOpen(true);
+                  setMobileOpen(false);
+                }
+              }}
+              className="flex items-center gap-2.5 min-w-0 cursor-pointer group"
+            >
+              <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-slate-200 text-xs shrink-0 group-hover:border-blue-500/50 transition-colors overflow-hidden">
                 {user?.photoURL ? (
-                  <img src={user.photoURL} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                  <img src={user.photoURL} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
                   profile.displayName.substring(0, 2).toUpperCase()
                 )}
               </div>
-              <div className="overflow-hidden">
-                <p className="text-xs font-semibold text-white truncate">{profile.displayName}</p>
-                <p className="text-[10px] text-emerald-400 flex items-center gap-1 font-mono">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  {user ? 'Nuvem Conectada' : 'Modo Offline / Local'}
+              <div className="overflow-hidden min-w-0">
+                <p className="text-xs font-semibold text-white truncate group-hover:text-blue-300 transition-colors">
+                  {user ? profile.displayName : 'Cadete Visitante'}
+                </p>
+                <p className="text-[10px] text-emerald-400 flex items-center gap-1 font-mono truncate">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                  {user ? 'Nuvem Conectada' : 'Modo Offline'}
                 </p>
               </div>
             </div>
@@ -188,15 +201,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen }) =
               <button
                 onClick={signOutUser}
                 title="Sair da conta"
-                className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors"
+                className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
               </button>
             ) : (
               <button
-                onClick={signIn}
-                title="Sincronizar com Google"
-                className="text-[11px] font-medium text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 px-2 py-1 rounded transition-colors"
+                onClick={() => {
+                  setAuthModalOpen(true);
+                  setMobileOpen(false);
+                }}
+                title="Acessar ou Criar Conta"
+                className="text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded-xl shadow-xs transition-all cursor-pointer shrink-0"
               >
                 Entrar
               </button>

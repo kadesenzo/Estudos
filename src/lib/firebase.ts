@@ -1,5 +1,17 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  updateProfile as updateFirebaseProfile,
+  signInAnonymously,
+  signOut,
+  onAuthStateChanged,
+  User
+} from 'firebase/auth';
 import {
   getFirestore,
   doc,
@@ -84,6 +96,40 @@ export async function testFirestoreConnection(): Promise<boolean> {
   }
 }
 
+/**
+ * Traduz os códigos de erro do Firebase Auth para mensagens amigáveis em português.
+ */
+export function getAuthErrorMessage(error: any): string {
+  const code = error?.code || '';
+  switch (code) {
+    case 'auth/invalid-email':
+      return 'O formato do e-mail informado é inválido.';
+    case 'auth/user-disabled':
+      return 'Esta conta de usuário foi temporariamente desativada.';
+    case 'auth/user-not-found':
+      return 'Nenhum usuário cadastrado encontrado com este e-mail.';
+    case 'auth/wrong-password':
+    case 'auth/invalid-credential':
+      return 'E-mail ou senha incorretos. Verifique suas credenciais.';
+    case 'auth/email-already-in-use':
+      return 'Este e-mail já está em uso por outra conta. Faça login ou recupere a senha.';
+    case 'auth/weak-password':
+      return 'A senha precisa ter pelo menos 6 caracteres.';
+    case 'auth/popup-closed-by-user':
+      return 'A janela de autenticação do Google foi fechada antes de concluir.';
+    case 'auth/popup-blocked':
+      return 'O navegador bloqueou o pop-up de login. Permita pop-ups ou utilize login por e-mail e senha.';
+    case 'auth/network-request-failed':
+      return 'Falha de conexão com a internet. Verifique sua rede e tente novamente.';
+    case 'auth/too-many-requests':
+      return 'Muitas tentativas malsucedidas. Aguarde alguns minutos antes de tentar novamente.';
+    case 'auth/operation-not-allowed':
+      return 'Este método de autenticação não está habilitado no momento.';
+    default:
+      return error?.message || 'Ocorreu um erro durante a autenticação. Tente novamente.';
+  }
+}
+
 export async function loginWithGoogle(): Promise<User> {
   try {
     const result = await signInWithPopup(auth, googleProvider);
@@ -94,6 +140,51 @@ export async function loginWithGoogle(): Promise<User> {
   }
 }
 
+export async function loginWithEmail(email: string, pass: string): Promise<User> {
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email.trim(), pass);
+    return cred.user;
+  } catch (error) {
+    console.error("Email login error:", error);
+    throw error;
+  }
+}
+
+export async function registerWithEmail(name: string, email: string, pass: string): Promise<User> {
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email.trim(), pass);
+    if (name.trim()) {
+      await updateFirebaseProfile(cred.user, {
+        displayName: name.trim()
+      });
+    }
+    return cred.user;
+  } catch (error) {
+    console.error("Email registration error:", error);
+    throw error;
+  }
+}
+
+export async function resetPassword(email: string): Promise<void> {
+  try {
+    await sendPasswordResetEmail(auth, email.trim());
+  } catch (error) {
+    console.error("Password reset error:", error);
+    throw error;
+  }
+}
+
+export async function loginAsGuest(): Promise<User> {
+  try {
+    const cred = await signInAnonymously(auth);
+    return cred.user;
+  } catch (error) {
+    console.error("Guest login error:", error);
+    throw error;
+  }
+}
+
 export async function logoutUser(): Promise<void> {
   await signOut(auth);
 }
+

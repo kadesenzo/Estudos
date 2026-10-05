@@ -13,7 +13,8 @@ import {
   Flame,
   Zap,
   BookmarkCheck,
-  AlertTriangle
+  AlertTriangle,
+  User
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useStudy } from '../context/StudyContext';
@@ -24,7 +25,7 @@ interface OnboardingModalProps {
 }
 
 export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClose }) => {
-  const { updateProfile, profile, resetAllToZero, setCourseCheckpoint, courses } = useStudy();
+  const { updateProfile, profile, resetAllToZero, setCourseCheckpoint, courses, setAuthModalOpen } = useStudy();
 
   const [step, setStep] = useState(1);
   const [userName, setUserName] = useState(profile.displayName || 'Cadete ITA');
@@ -169,8 +170,22 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
           {/* STEP 1: OBJETIVO & NOME */}
           {step === 1 && (
             <div className="space-y-4 animate-in fade-in">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-blue-400">Passo 1 de 5</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    setAuthModalOpen(true);
+                  }}
+                  className="text-xs text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  <span>Já tem conta? Fazer Login</span>
+                </button>
+              </div>
+
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-blue-400 block mb-1">Passo 1 de 5</span>
                 <h3 className="text-lg font-bold text-white">Qual concurso militar é a sua prioridade máxima?</h3>
                 <p className="text-xs text-slate-400 mt-1">
                   Configuraremos as metas, simulados e cadernos de questões com o rigor do seu edital.

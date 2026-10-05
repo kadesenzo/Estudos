@@ -42,12 +42,16 @@ export const Header: React.FC<HeaderProps> = ({ setMobileOpen }) => {
     notificationPreferences,
     markNotificationAsRead,
     markAllNotificationsAsRead,
-    clearReadNotifications
+    clearReadNotifications,
+    setAuthModalOpen,
+    signOutUser
   } = useStudy();
 
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'reviews' | 'routine'>('all');
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -55,14 +59,15 @@ export const Header: React.FC<HeaderProps> = ({ setMobileOpen }) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setNotificationsOpen(false);
       }
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setProfileMenuOpen(false);
+      }
     };
-    if (notificationsOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [notificationsOpen]);
+  }, []);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
@@ -363,30 +368,80 @@ export const Header: React.FC<HeaderProps> = ({ setMobileOpen }) => {
           )}
         </div>
 
-        {/* User Profile Button */}
+        {/* User Profile / Login Button */}
         {user ? (
-          <button
-            onClick={() => navigateTo('settings')}
-            className="flex items-center gap-2 pl-2 pr-3 py-1 rounded-full bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors"
-          >
-            <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-[11px] font-bold">
-              {user.photoURL ? (
-                <img src={user.photoURL} alt="User" className="w-full h-full rounded-full object-cover" />
-              ) : (
-                profile.displayName.charAt(0)
-              )}
-            </div>
-            <span className="text-xs font-semibold text-slate-200 hidden md:inline truncate max-w-[100px]">
-              {profile.displayName.split(' ')[0]}
-            </span>
-          </button>
+          <div className="relative" ref={profileRef}>
+            <button
+              onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+              className="flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer"
+            >
+              <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center text-white text-[11px] font-bold shadow-xs overflow-hidden">
+                {user.photoURL ? (
+                  <img src={user.photoURL} alt="User" className="w-full h-full object-cover" />
+                ) : (
+                  profile.displayName.charAt(0).toUpperCase()
+                )}
+              </div>
+              <span className="text-xs font-semibold text-slate-200 hidden md:inline truncate max-w-[100px]">
+                {profile.displayName.split(' ')[0]}
+              </span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            </button>
+
+            {profileMenuOpen && (
+              <div className="absolute right-0 mt-2 w-64 bg-[#0B1120] border border-slate-800 rounded-2xl shadow-2xl py-3 px-3 z-50 animate-in fade-in slide-in-from-top-2 space-y-2">
+                <div className="px-2 pb-2 border-b border-slate-800">
+                  <p className="text-xs font-bold text-white truncate">{profile.displayName}</p>
+                  <p className="text-[11px] text-slate-400 truncate">{user.email || 'Conta local/convidado'}</p>
+                  <span className="inline-block mt-1 text-[9px] font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+                    Alvo: {profile.targetExam}
+                  </span>
+                </div>
+
+                <div className="space-y-1 text-xs">
+                  <button
+                    onClick={() => {
+                      navigateTo('settings');
+                      setProfileMenuOpen(false);
+                    }}
+                    className="w-full text-left px-2.5 py-2 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition-colors flex items-center gap-2"
+                  >
+                    <UserIcon className="w-4 h-4 text-blue-400" />
+                    <span>Perfil & Metas de Estudo</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      navigateTo('settings');
+                      setProfileMenuOpen(false);
+                    }}
+                    className="w-full text-left px-2.5 py-2 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition-colors flex items-center gap-2"
+                  >
+                    <Cloud className="w-4 h-4 text-emerald-400" />
+                    <span>Status de Nuvem & Backup</span>
+                  </button>
+
+                  <button
+                    onClick={async () => {
+                      setProfileMenuOpen(false);
+                      await signOutUser();
+                    }}
+                    className="w-full text-left px-2.5 py-2 rounded-xl hover:bg-rose-500/15 text-rose-300 hover:text-rose-200 transition-colors flex items-center gap-2 border-t border-slate-800/80 pt-2"
+                  >
+                    <Trash2 className="w-4 h-4 text-rose-400" />
+                    <span>Sair da Conta</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         ) : (
           <button
-            onClick={signIn}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-xs shadow-blue-600/30 transition-all"
+            onClick={() => setAuthModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/30 transition-all cursor-pointer"
           >
             <UserIcon className="w-3.5 h-3.5" />
-            <span>Login Google</span>
+            <span>Entrar / Cadastrar</span>
           </button>
         )}
       </div>

@@ -21,6 +21,7 @@ import { SettingsView } from './components/SettingsView';
 import { GlobalSearchModal } from './components/GlobalSearchModal';
 import { OnboardingModal } from './components/OnboardingModal';
 import { InAppNotificationToast } from './components/InAppNotificationToast';
+import { AuthModal } from './components/AuthModal';
 import {
   LayoutDashboard,
   BookOpen,
@@ -33,7 +34,7 @@ import {
 } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
-  const { currentView, navigateTo, onboardingOpen, setOnboardingOpen } = useStudy();
+  const { currentView, navigateTo, onboardingOpen, setOnboardingOpen, authModalOpen, setAuthModalOpen } = useStudy();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -123,6 +124,9 @@ const MainLayout: React.FC = () => {
 
       {/* Onboarding & Diagnostic Quiz Modal */}
       <OnboardingModal isOpen={onboardingOpen} onClose={() => setOnboardingOpen(false)} />
+
+      {/* Authentication & Login Modal */}
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
 
       {/* Floating In-App Interactive Notification Toast */}
       <InAppNotificationToast />
