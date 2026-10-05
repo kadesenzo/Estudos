@@ -11,15 +11,19 @@ import {
   Calendar,
   Layers,
   Sparkles,
-  Info
+  Info,
+  BarChart3,
+  TrendingUp
 } from 'lucide-react';
 import { useStudy } from '../context/StudyContext';
+import { ProgressDashboard } from './ProgressDashboard';
 
 export const MilitaryExamsView: React.FC = () => {
   const { militaryExams, toggleMilitaryTopic, profile, updateProfile, navigateTo } = useStudy();
   const [selectedExamId, setSelectedExamId] = useState<string>(() => {
     return profile.targetExam ? profile.targetExam.toLowerCase().replace(/\s+/g, '') : 'ita';
   });
+  const [subTab, setSubTab] = useState<'edital' | 'analytics'>('edital');
 
   const selectedExam = militaryExams.find(e => e.id === selectedExamId) || militaryExams[0];
 
@@ -86,8 +90,38 @@ export const MilitaryExamsView: React.FC = () => {
         })}
       </div>
 
-      {/* Selected Exam Dashboard */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      {/* Sub-Tabs: Edital Oficial vs Dashboard de Evolução Recharts */}
+      <div className="flex border-b border-slate-800 gap-2 pb-1">
+        <button
+          onClick={() => setSubTab('edital')}
+          className={`px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer ${
+            subTab === 'edital'
+              ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 ring-2 ring-blue-400'
+              : 'bg-slate-900/60 border border-slate-800 text-slate-400 hover:text-white'
+          }`}
+        >
+          <BookOpen className="w-4 h-4" />
+          <span>Edital & Requisitos</span>
+        </button>
+
+        <button
+          onClick={() => setSubTab('analytics')}
+          className={`px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer ${
+            subTab === 'analytics'
+              ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 ring-2 ring-blue-400'
+              : 'bg-slate-900/60 border border-slate-800 text-slate-400 hover:text-white'
+          }`}
+        >
+          <BarChart3 className="w-4 h-4 text-cyan-400" />
+          <span>Dashboard de Progresso & Recharts ({selectedExam.name})</span>
+        </button>
+      </div>
+
+      {subTab === 'analytics' ? (
+        <ProgressDashboard initialExamId={selectedExam.id} />
+      ) : (
+        /* Selected Exam Dashboard */
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Details, Requirements, Stages (5 cols) */}
         <div className="lg:col-span-5 space-y-6">
           {/* Header Card */}
@@ -259,6 +293,7 @@ export const MilitaryExamsView: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 };

@@ -13,6 +13,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useStudy } from '../context/StudyContext';
+import { ProgressDashboard } from './ProgressDashboard';
 
 export const PerformanceView: React.FC = () => {
   const {
@@ -23,20 +24,12 @@ export const PerformanceView: React.FC = () => {
     studySessions
   } = useStudy();
 
-  const [period, setPeriod] = useState<'7' | '30' | '90' | 'all'>('30');
-
   const totalQuestions = questionAttempts.length;
   const correctQuestions = questionAttempts.filter(q => q.isCorrect).length;
   const accuracy = totalQuestions > 0 ? Math.round((correctQuestions / totalQuestions) * 100) : 0;
 
   const inProgressCourses = courses.filter(c => c.progressPercent > 0 && c.progressPercent < 100).length;
   const completedCourses = courses.filter(c => c.progressPercent === 100).length;
-
-  // Breakdown by subject based on studySessions and questions
-  const subjectHours: Record<string, number> = {};
-  studySessions.forEach(s => {
-    subjectHours[s.subject] = (subjectHours[s.subject] || 0) + s.durationMinutes;
-  });
 
   const formatHours = (minutes: number) => {
     const h = Math.floor(minutes / 60);
@@ -49,29 +42,37 @@ export const PerformanceView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto pb-16">
+    <div className="space-y-8 max-w-7xl mx-auto pb-16">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
-            <BarChart3 className="w-6 h-6 text-blue-400" />
-            <span>Meu Desempenho & Evolução Acadêmica</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-mono font-extrabold uppercase tracking-widest text-cyan-400 bg-cyan-500/10 px-2.5 py-0.5 rounded border border-cyan-500/20">
+              PAINEL DE EVOLUÇÃO GRÁFICA
+            </span>
+            <span className="text-[10px] font-mono text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+              Alvo: {profile.targetExam}
+            </span>
+          </div>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2 mt-1">
+            <BarChart3 className="w-7 h-7 text-blue-400" />
+            <span>Dashboard de Progresso & Evolução</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Estatísticas reais calculadas a partir das suas sessões de estudo, videoaulas e banco de questões.
+          <p className="text-xs text-slate-400 mt-1 max-w-3xl">
+            Acompanhe o tempo de estudo diário acumulado e a evolução percentual nas matérias de cada concurso militar selecionado.
           </p>
         </div>
 
         <button
           onClick={handlePrintReport}
-          className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 flex items-center gap-2 transition-colors self-start sm:self-auto"
+          className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 flex items-center gap-2 transition-colors self-start sm:self-auto cursor-pointer shadow-sm"
         >
           <Download className="w-4 h-4 text-blue-400" />
           <span>Exportar Relatório</span>
         </button>
       </div>
 
-      {/* Main KPI Cards */}
+      {/* Primary KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-[#0B1120] border border-slate-800 p-5 rounded-2xl space-y-2">
           <div className="flex items-center justify-between text-slate-400 text-xs">
@@ -79,7 +80,7 @@ export const PerformanceView: React.FC = () => {
             <Clock className="w-4 h-4 text-blue-400" />
           </div>
           <p className="text-3xl font-extrabold text-white font-mono">{formatHours(profile.totalStudyMinutes)}</p>
-          <p className="text-[11px] text-slate-500">Média diária: ~{Math.floor(profile.dailyGoalMinutes / 60)}h</p>
+          <p className="text-[11px] text-slate-500">Meta diária: {Math.floor(profile.dailyGoalMinutes / 60)}h/dia</p>
         </div>
 
         <div className="bg-[#0B1120] border border-slate-800 p-5 rounded-2xl space-y-2">
@@ -93,7 +94,7 @@ export const PerformanceView: React.FC = () => {
 
         <div className="bg-[#0B1120] border border-slate-800 p-5 rounded-2xl space-y-2">
           <div className="flex items-center justify-between text-slate-400 text-xs">
-            <span>Questões Respondidas</span>
+            <span>Questões Resolvidas</span>
             <HelpCircle className="w-4 h-4 text-purple-400" />
           </div>
           <p className="text-3xl font-extrabold text-white font-mono">{totalQuestions}</p>
@@ -102,49 +103,16 @@ export const PerformanceView: React.FC = () => {
 
         <div className="bg-[#0B1120] border border-slate-800 p-5 rounded-2xl space-y-2">
           <div className="flex items-center justify-between text-slate-400 text-xs">
-            <span>Índice de Precisão</span>
+            <span>Taxa de Acerto Geral</span>
             <Award className="w-4 h-4 text-amber-400" />
           </div>
           <p className="text-3xl font-extrabold text-white font-mono">{accuracy}%</p>
-          <p className="text-[11px] text-slate-500">Taxa em simulados e banco</p>
+          <p className="text-[11px] text-slate-500">Precisão em simulados e listas</p>
         </div>
       </div>
 
-      {/* Subject Distribution Bars */}
-      <div className="bg-[#0B1120] border border-slate-800 rounded-2xl p-6 md:p-8 space-y-6">
-        <div>
-          <h3 className="text-base font-bold text-white">Horas Líquidas por Matéria</h3>
-          <p className="text-xs text-slate-400">Distribuição do tempo registrado em cada frente de estudos.</p>
-        </div>
-
-        <div className="space-y-4">
-          {Object.entries(subjectHours).length > 0 ? (
-            Object.entries(subjectHours).map(([subject, minutes]) => {
-              const maxMinutes = Math.max(...Object.values(subjectHours), 1);
-              const barWidth = Math.round((minutes / maxMinutes) * 100);
-
-              return (
-                <div key={subject} className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-slate-200">{subject}</span>
-                    <span className="font-mono text-slate-400">{formatHours(minutes)}</span>
-                  </div>
-                  <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-blue-600 to-indigo-500 rounded-full"
-                      style={{ width: `${barWidth}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <p className="text-xs text-slate-500 text-center py-4">
-              Nenhuma sessão de estudo com tempo cronometrado registrada ainda.
-            </p>
-          )}
-        </div>
-      </div>
+      {/* Recharts Military Progress Dashboard Core */}
+      <ProgressDashboard />
 
       {/* Simulados History Table */}
       <div className="bg-[#0B1120] border border-slate-800 rounded-2xl p-6 md:p-8 space-y-4">
@@ -185,3 +153,4 @@ export const PerformanceView: React.FC = () => {
     </div>
   );
 };
+
