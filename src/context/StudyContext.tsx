@@ -234,7 +234,15 @@ const DEFAULT_SESSIONS: StudySession[] = [];
 const StudyContext = createContext<StudyContextType | undefined>(undefined);
 
 export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem('aethon_auth_user');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return null;
+  });
   const [currentView, setCurrentView] = useState<AppView>('dashboard');
   const [activeCourseId, setActiveCourseId] = useState<string | null>('course-mat-telegram');
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
@@ -488,8 +496,16 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     testFirestoreConnection();
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
       if (currentUser) {
+        setUser(currentUser);
+        localStorage.setItem('aethon_auth_user', JSON.stringify({
+          uid: currentUser.uid,
+          email: currentUser.email,
+          displayName: currentUser.displayName,
+          photoURL: currentUser.photoURL,
+          isLocal: false
+        }));
+
         // Fetch or create profile in Firestore
         try {
           const userDocRef = doc(db, 'users', currentUser.uid);
@@ -512,6 +528,19 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         } catch (err) {
           console.warn("Firestore sync notice (local backup active):", err);
         }
+      } else {
+        // If Firebase says no user, check if we have a valid local cadet session
+        const saved = localStorage.getItem('aethon_auth_user');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (parsed && (parsed.isLocal || parsed.uid?.startsWith('cadete-') || parsed.uid?.startsWith('guest-'))) {
+              setUser(parsed as unknown as User);
+              return;
+            }
+          } catch (e) {}
+        }
+        setUser(null);
       }
     });
 
@@ -943,58 +972,169 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const loginWithGoogleHandler = async () => {
-    const loggedUser = await loginWithGoogle();
-    setUser(loggedUser);
+    try {
+      const loggedUser = await loginWithGoogle();
+      setUser(loggedUser);
+      localStorage.setItem('aethon_auth_user', JSON.stringify({
+        uid: loggedUser.uid,
+        email: loggedUser.email,
+        displayName: loggedUser.displayName,
+        photoURL: loggedUser.photoURL,
+        isLocal: false
+      }));
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      throw error;
+    }
   };
 
   const loginWithEmailHandler = async (email: string, pass: string) => {
-    const loggedUser = await loginWithEmail(email, pass);
-    setUser(loggedUser);
+    try {
+      const loggedUser = await loginWithEmail(email, pass);
+      setUser(loggedUser);
+      localStorage.setItem('aethon_auth_user', JSON.stringify({
+        uid: loggedUser.uid,
+        email: loggedUser.email,
+        displayName: loggedUser.displayName,
+        photoURL: loggedUser.photoURL,
+        isLocal: false
+      }));
+    } catch (err: any) {
+      console.warn("Firebase email login failed, checking local accounts on device:", err);
+      const localUsers = JSON.parse(localStorage.getItem('aethon_registered_cadets') || '{}');
+      const normalizedEmail = email.trim().toLowerCase();
+      const localAccount = localUsers[normalizedEmail];
+
+      if (localAccount) {
+        if (localAccount.password === pass) {
+          const localUserObj = {
+            uid: localAccount.uid,
+            email: localAccount.email,
+            displayName: localAccount.name,
+            isLocal: true
+          };
+          setUser(localUserObj as unknown as User);
+          localStorage.setItem('aethon_auth_user', JSON.stringify(localUserObj));
+          setProfile(prev => ({
+            ...prev,
+            userId: localUserObj.uid,
+            displayName: localAccount.name || prev.displayName,
+            email: localAccount.email,
+            targetExam: localAccount.targetExam || prev.targetExam,
+            updatedAt: new Date().toISOString()
+          }));
+          return;
+        } else {
+          throw new Error('Senha incorreta para o e-mail informado.');
+        }
+      }
+
+      // If no local account matched and it was a Firebase failure, throw the error
+      throw err;
+    }
   };
 
   const registerWithEmailHandler = async (name: string, email: string, pass: string, targetExam?: string) => {
-    const registeredUser = await registerWithEmail(name, email, pass);
-    setUser(registeredUser);
-
-    const updatedProfile: UserProfile = {
-      ...profile,
-      userId: registeredUser.uid,
-      displayName: name.trim() || profile.displayName,
-      email: email.trim(),
-      targetExam: targetExam || profile.targetExam,
-      updatedAt: new Date().toISOString()
-    };
-    setProfile(updatedProfile);
-
+    const normalizedEmail = email.trim().toLowerCase();
     try {
-      await setDoc(doc(db, 'users', registeredUser.uid), updatedProfile);
-    } catch (e) {
-      console.warn("Could not save initial profile to Firestore:", e);
+      const registeredUser = await registerWithEmail(name, email, pass);
+      setUser(registeredUser);
+      localStorage.setItem('aethon_auth_user', JSON.stringify({
+        uid: registeredUser.uid,
+        email: registeredUser.email,
+        displayName: registeredUser.displayName || name,
+        photoURL: registeredUser.photoURL,
+        isLocal: false
+      }));
+
+      const updatedProfile: UserProfile = {
+        ...profile,
+        userId: registeredUser.uid,
+        displayName: name.trim() || profile.displayName,
+        email: normalizedEmail,
+        targetExam: targetExam || profile.targetExam,
+        updatedAt: new Date().toISOString()
+      };
+      setProfile(updatedProfile);
+
+      try {
+        await setDoc(doc(db, 'users', registeredUser.uid), updatedProfile);
+      } catch (e) {
+        console.warn("Could not save initial profile to Firestore:", e);
+      }
+    } catch (err: any) {
+      console.warn("Firebase registration failed on current domain, registering local cadet profile:", err);
+      // Generate a stable local UID for this cadet
+      const localUid = `cadete-${Date.now()}`;
+      const localUsers = JSON.parse(localStorage.getItem('aethon_registered_cadets') || '{}');
+      localUsers[normalizedEmail] = {
+        name: name.trim(),
+        email: normalizedEmail,
+        password: pass,
+        targetExam: targetExam || profile.targetExam,
+        uid: localUid
+      };
+      localStorage.setItem('aethon_registered_cadets', JSON.stringify(localUsers));
+
+      const localUserObj = {
+        uid: localUid,
+        email: normalizedEmail,
+        displayName: name.trim(),
+        isLocal: true
+      };
+      setUser(localUserObj as unknown as User);
+      localStorage.setItem('aethon_auth_user', JSON.stringify(localUserObj));
+
+      const updatedProfile: UserProfile = {
+        ...profile,
+        userId: localUid,
+        displayName: name.trim() || profile.displayName,
+        email: normalizedEmail,
+        targetExam: targetExam || profile.targetExam,
+        updatedAt: new Date().toISOString()
+      };
+      setProfile(updatedProfile);
     }
   };
 
   const resetPasswordHandler = async (email: string) => {
-    await resetPassword(email);
+    try {
+      await resetPassword(email);
+    } catch (err) {
+      console.warn("Firebase password reset notice:", err);
+      throw err;
+    }
   };
 
   const loginAsGuestHandler = async () => {
     try {
       const guestUser = await loginAsGuest();
       setUser(guestUser);
+      localStorage.setItem('aethon_auth_user', JSON.stringify({
+        uid: guestUser.uid,
+        email: null,
+        displayName: 'Cadete Convidado',
+        isLocal: false
+      }));
     } catch (e) {
       // Local fallback for guest mode
       const dummyUser = {
         uid: `guest-${Date.now()}`,
         isAnonymous: true,
         displayName: 'Cadete Convidado',
-        email: null
+        email: null,
+        isLocal: true
       } as unknown as User;
       setUser(dummyUser);
+      localStorage.setItem('aethon_auth_user', JSON.stringify(dummyUser));
     }
   };
 
   const signOutUser = async () => {
-    await logoutUser();
+    try {
+      await logoutUser();
+    } catch (e) {}
+    localStorage.removeItem('aethon_auth_user');
     setUser(null);
   };
 

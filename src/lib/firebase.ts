@@ -124,7 +124,13 @@ export function getAuthErrorMessage(error: any): string {
     case 'auth/too-many-requests':
       return 'Muitas tentativas malsucedidas. Aguarde alguns minutos antes de tentar novamente.';
     case 'auth/operation-not-allowed':
-      return 'Este método de autenticação não está habilitado no momento.';
+      return 'O método de autenticação por e-mail/senha ou Google precisa ser ativado no Firebase Console. Você pode continuar em Modo Local.';
+    case 'auth/unauthorized-domain':
+      return 'Este domínio da Vercel ainda não está cadastrado na lista de domínios autorizados do Firebase. Para usar Google na Vercel, adicione este link no Firebase Console (Authentication > Settings > Authorized Domains). Use login por E-mail e Senha ou Modo Local abaixo.';
+    case 'auth/configuration-not-found':
+      return 'Configuração de autenticação não localizada para este domínio. Utilize cadastro por E-mail e Senha.';
+    case 'auth/cancelled-popup-request':
+      return 'A autenticação foi cancelada.';
     default:
       return error?.message || 'Ocorreu um erro durante a autenticação. Tente novamente.';
   }

@@ -249,9 +249,34 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
           {/* Feedback Messages */}
           {errorMsg && (
-            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2 animate-in fade-in duration-200">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
-              <span>{errorMsg}</span>
+            <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs space-y-2 animate-in fade-in duration-200">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
+                <span className="leading-relaxed">{errorMsg}</span>
+              </div>
+
+              {/* Vercel / Offline Instant Access Fallback */}
+              <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-rose-500/20 text-[11px]">
+                <span className="text-slate-300 font-medium">Está na Vercel ou sem conexão?</span>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const cadetName = name.trim() || (email ? email.split('@')[0] : 'Cadete Aethon');
+                    const cadetEmail = email.trim() || 'cadete@aethon.com.br';
+                    await registerWithEmailHandler(cadetName, cadetEmail, password || '123456', targetExam);
+                    triggerNotification({
+                      category: 'system',
+                      title: `Acesso Liberado: Cadete ${cadetName}!`,
+                      message: 'Conta ativada em Modo Local para uso direto na Vercel. Todos os seus dados serão salvos neste navegador.',
+                      priority: 'high'
+                    });
+                    onClose();
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold transition-colors cursor-pointer self-start sm:self-auto shadow-sm"
+                >
+                  Acessar Agora em Modo Local
+                </button>
+              </div>
             </div>
           )}
 
@@ -535,6 +560,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <span>Modo Visitante</span>
               </button>
             </div>
+          </div>
+
+          <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-3 text-[11px] text-slate-400 space-y-1">
+            <p className="font-semibold text-slate-300 flex items-center gap-1.5">
+              <span>🚀 Acesso na Vercel & Offline</span>
+            </p>
+            <p className="leading-relaxed text-slate-400">
+              O cadastro e login por <strong className="text-slate-200">E-mail e Senha</strong> e o <strong className="text-slate-200">Modo Visitante</strong> funcionam diretamente em qualquer domínio. Para habilitar o botão Google no seu link da Vercel, adicione seu domínio no Firebase Console (<em>Authentication &gt; Settings &gt; Authorized Domains</em>).
+            </p>
           </div>
 
           <p className="text-[11px] text-slate-500 text-center leading-normal pt-1">
